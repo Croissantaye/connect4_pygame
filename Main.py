@@ -1,5 +1,6 @@
 # Example file showing a basic pygame "game loop"
 import pygame
+import math
 import random
 import numpy
 import Controls 
@@ -8,17 +9,18 @@ import SnakePiece
 # pygame setup
 pygame.init()
 grid = pygame.Vector2(30, 20)
-gridScale = 20
-screen = pygame.display.set_mode((grid.x * gridScale, grid.y * 20))
+squareSize = 40
+# squareSize = 20
+screen = pygame.display.set_mode((grid.x * squareSize, grid.y * squareSize))
 clock = pygame.time.Clock()
-frameRate = 60
+frameRate = 30
 running = True
 dt = 0
-squareSize = 20
 speed = 100
-movesPerSecond = 1
+# movesPerSecond = 20
 frameCounter = 0
 movementVector = pygame.Vector2(0,0)
+input = pygame.Vector2(0, 0)
 
 screenCenter = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 headPos = screenCenter
@@ -29,7 +31,7 @@ snakeSquares = [SnakePiece.SnakePiece(pygame.Rect(0, 0, squareSize, squareSize))
 # SnakePiece.SnakePiece(pygame.Rect(0, 0, squareSize, squareSize)),
 ]
 
-def drawScreenGrid():
+def drawScreenGrid(color):
         screen.fill(pygame.Color(255, 255, 255, 255))
         for x in range(int(grid.x)):
             isOddRow = x % 2 == 1
@@ -38,8 +40,8 @@ def drawScreenGrid():
                 if(isOddRow):
                     yOffset = 0
                 if(y % 2 == yOffset):
-                    tile = pygame.Rect(gridScale * x, gridScale * y, gridScale, gridScale)
-                    pygame.draw.rect(screen, "grey", tile)
+                    tile = pygame.Rect(squareSize * x, squareSize * y, squareSize, squareSize)
+                    pygame.draw.rect(screen, color, tile)
 
 while running:
     # poll for events
@@ -49,14 +51,33 @@ while running:
             running = False
 
     # fill the screen with a color to wipe away anything from last frame
-    drawScreenGrid()
+    # drawScreenGrid()
 
     # keep inside the screen
     headPos = pygame.Vector2(
-    numpy.clip(headPos.x + movementVector.x, 0, screen.get_width() - squareSize), 
-    numpy.clip(headPos.y + movementVector.y, 0, screen.get_height() - squareSize)
+        numpy.clip(headPos.x + movementVector.x, 0, screen.get_width() - squareSize), 
+        numpy.clip(headPos.y + movementVector.y, 0, screen.get_height() - squareSize)
     )
-    movementVector = Controls.getMovementVector(movementVector, speed, frameRate)
+    # headPos.x = math.floor(headPos.x)
+    # headPos.y = math.floor(headPos.y)
+    roundedHeadPos = pygame.Vector2(math.floor(headPos.x), math.floor(headPos.y))
+    remainder = 0
+    color = 'grey'
+    input = Controls.getMovementVector(input, speed, frameRate)
+    print('update input' + str(frameCounter))
+    print(input)
+    print('movement')
+    print(movementVector)
+    print(input.dot(movementVector))
+    print(roundedHeadPos.x % squareSize)
+    print(roundedHeadPos.y % squareSize)
+    if(roundedHeadPos.x % squareSize <= remainder and roundedHeadPos.y % squareSize <= remainder):
+        # print('update movement' + str(frameCounter))
+        color = 'orange'
+        if(input.dot(movementVector) >= 0):
+            movementVector = input
+    # if(frameCounter == frameRate / movesPerSecond):
+        # movementVector = Controls.getMovementVector(movementVector, speed, frameRate)
 
     # check collision with walls
     isWallCollision = False
@@ -66,6 +87,9 @@ while running:
     headPos.y == 0):
         isWallCollision = True
     
+
+    drawScreenGrid(color)
+                    
     # RENDER YOUR GAME HERE
     numSnakeSquares = len(snakeSquares)
     previousSnakeSquarePos = headPos 
@@ -96,6 +120,11 @@ while running:
     # limits FPS to 60
     # dt is delta time in seconds since last frame, used for framerate-
     # independent physics.
+    # if(frameCounter == frameRate / movesPerSecond):
+    #     frameCounter = 0
+    # else:
+    #     frameCounter += 1
+    frameCounter += 1
     dt = clock.tick(frameRate) / 1000
 
 pygame.quit()
