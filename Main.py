@@ -39,7 +39,7 @@ input = pygame.Vector2(0, 1)
 
 screenCenter = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 headPos = screenCenter
-snakeSquares = createSnakePieces(screenCenter, 5)
+snakeSquares = createSnakePieces(screenCenter, 15)
 snakeSquares[0].dir = pygame.Vector2(0, speed)
 
 while running:
@@ -94,7 +94,9 @@ while running:
                 else:
                     dir = pygame.Vector2(0, math.copysign(1, prevPos.y - square.pos.y))
             square.updatePos(pygame.Vector2(square.pos.x + (dir.x * speed), square.pos.y + (dir.y * speed)), dir)
-        
+            distToHead = pygame.Vector2(snakeSquares[0].pos.x - square.pos.x, snakeSquares[0].pos.y - square.pos.y)
+            if(distToHead.length_squared() < math.pow(squareSize - (1/3 * squareSize), 2)):
+                running = False
         pygame.draw.rect(screen, snakeColor, snakeSquares[i].rect)
         prevPos = snakeSquares[i].pos
 
